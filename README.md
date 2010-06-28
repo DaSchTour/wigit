@@ -1,6 +1,4 @@
-***************************
-* WiGit: A Git-based Wiki *
-***************************
+# WiGit: A Git-based Wiki
 
 ## About
 
