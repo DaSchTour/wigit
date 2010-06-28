@@ -46,34 +46,35 @@ class Core
     public function getGitHistory($file = "")
     {
         $output = array();
-		// FIXME: Find a better way to find the files that changed than --name-only
-		$this->git("log --name-only --pretty=format:'%H>%T>%an>%ae>%aD>%s' -- $file", $output);
 
-		$history = array();
-		$historyItem = array();
-		foreach ($output as $line) {
-			$logEntry = explode(">", $line, 6);
-			if (sizeof($logEntry) > 1) {
-				// Populate history structure
-				$historyItem = array(
-						"author" => $logEntry[2], 
-						"email" => $logEntry[3],
-						"linked-author" => (
-								$logEntry[3] == "" ? 
-									$logEntry[2] 
-									: "<a href=\"mailto:$logEntry[3]\">$logEntry[2]</a>"),
-						"date" => $logEntry[4], 
-						"message" => $logEntry[5],
-						"commit" => $logEntry[0]
-					);
-			}
-			else if (!isset($historyItem["page"])) {
-				$historyItem["page"] = $line;
-				$history[] = $historyItem;
-			}
-		}
-		return $history;
-	}
+        // FIXME: Find a better way to find the files that changed than --name-only
+        $this->git("log --name-only --pretty=format:'%H>%T>%an>%ae>%aD>%s' -- $file", $output);
+
+        $history = array();
+        $historyItem = array();
+        foreach ($output as $line) {
+            $logEntry = explode(">", $line, 6);
+            if (sizeof($logEntry) > 1) {
+
+                // Populate history structure
+                $historyItem = array(
+                    "author"        => $logEntry[2], 
+                    "email"         => $logEntry[3],
+                    "linked-author" => (
+                        $logEntry[3] == "" ? $logEntry[2] : "<a href=\"mailto:$logEntry[3]\">$logEntry[2]</a>"
+                    ),
+                    "date" => $logEntry[4], 
+                    "message" => $logEntry[5],
+                    "commit" => $logEntry[0]
+                );
+
+			} else if (!isset($historyItem["page"])) {
+                $historyItem["page"] = $line;
+                $history[]           = $historyItem;
+            }
+        }
+        return $history;
+    }
 
     public function getAuthorForUser($user)
     {
