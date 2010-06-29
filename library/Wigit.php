@@ -35,6 +35,9 @@ class Core
         if (!is_writable($base . '/' . $this->config->data_dir)) {
             throw new \RuntimeException("data_dir {$this->config->data_dir} is not writable.");
         }
+	if ($this->config->timezone) {
+            date_default_timezone_set($this->config->timezone);
+	}
         return true;
     }
 

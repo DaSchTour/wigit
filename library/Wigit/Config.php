@@ -20,6 +20,7 @@ class Config
     public $default_author = 'Anonymous <anon@wigit>';
     public $authors        = array();
     public $theme          = 'default';
+    public $timezone;
 
     /**
      * Constructor.
