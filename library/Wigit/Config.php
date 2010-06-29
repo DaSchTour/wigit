@@ -28,7 +28,7 @@ class Config
      */
     public function __construct()
     {
-        $$this->script_url = "{$this->base_url}/index.php?r=";
+        $this->script_url = $this->base_url . '/index.php?r=';
     }
 
     /**
