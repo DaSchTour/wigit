@@ -84,7 +84,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 			$wikiPage = "";
 			include $wigit->getThemeDir() . "/history.php";
 		}
-		// Viewing
+		// Page index
+		else if ($wikiPage == "index") {
+			$wikiIndex = $wigit->getGitIndex();
+			include $wigit->getThemeDir() . "/index.php";
+		}
+	// Viewing
 		else if ($wikiSubPage == "view") {
 			if (!file_exists($wikiFile)) {
 				header("Location: " . $config->script_url . "/" . $resource["page"] . "/edit");
