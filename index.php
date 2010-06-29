@@ -27,7 +27,13 @@ $wikiPage    = $resource["page"];
 $wikiSubPage = $resource["type"];
 $wikiFile    = __DIR__ . "/" . $config->data_dir . "/" . $wikiPage;
 
-$wigit->checkSetup();
+try {
+    $wigit->checkSetup();
+} catch (\RuntimeException $e) {
+    $errorMsg = (string) $e;
+    include $wigit->getThemeDir() . '/error.php';
+    exit;
+}
 
 // --------------------------------------------------------------------------
 // Process request
@@ -111,7 +117,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 			include $wigit->getThemeDir() . "/history.php";
 		}
 		// Specific version
-		else if (eregi("[0-9A-F]{20,20}", $wikiSubPage)) {
+		else if (preg_match("/[0-9A-F]{20,20}/", $wikiSubPage)) {
 			$output = array();
 			if (!$wigit->git("cat-file -p " . $wikiSubPage . ":$wikiPage", $output)) {
 				exit('cat-file');
@@ -120,9 +126,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 			include $wigit->getThemeDir() . "/view.php";
 		}
 		else {
-			print "Unknow subpage: " . $wikiSubPage;
+			$errorMsg = "Unknow subpage: " . $wikiSubPage;
+            include $wigit->getThemeDir() . '/error.php';
 		}
         exit;
 	}
-    die("Unsupported METHOD: " . $_SERVER['REQUEST_METHOD']);
-?>
+
+$errorMsg = "Unsupported METHOD: " . $_SERVER['REQUEST_METHOD'];
+include $wigit->getThemeDir() . '/error.php';
