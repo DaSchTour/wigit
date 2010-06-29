@@ -112,7 +112,7 @@ class Core
         $digest = (substr($hdr,0,7) == 'Digest ') ? substr($hdr, strpos($hdr, ' ') + 1) : $hdr;
         if (!is_null($digest)) {
             $hdr = array();
-            preg_match_all('/(\w+)=(?:"([^"]+)"|([^\s,]+))/', $digest, $mtx, PREG_SET_ORDER);
+            \preg_match_all('/(\w+)=(?:"([^"]+)"|([^\s,]+))/', $digest, $mtx, PREG_SET_ORDER);
             foreach ($mtx as $m) {
                 if ($m[1] == "username") {
                     return $m[2] ? $m[2] : str_replace("\\\"", "", $m[3]);
@@ -156,7 +156,7 @@ class Core
 
     protected function sanitizeName($name)
     {
-        return ereg_replace("[^A-Za-z0-9]", "_", $name);
+        return \preg_replace("[^A-Za-z0-9]", "_", $name);
     }
 
     public function parseResource($resource)
@@ -165,12 +165,12 @@ class Core
         $matches = array();
         $page    = "";
         $type    = "";
-        if (ereg("/(.*)/(.*)", $resource, $matches)) {
+        if (preg_match("=\/(.*)\/(.*)=", $resource, $matches)) {
 
             $page = $this->sanitizeName($matches[1]);
             $type = $matches[2];
 
-        } else if (ereg("/(.*)", $resource, $matches)) {
+        } else if (preg_match("=\/(.*)=", $resource, $matches)) {
 
             $page = $this->sanitizeName($matches[1]);
 
@@ -195,11 +195,11 @@ class Core
         // FIXME: Do not apply this in <pre> and <notextile> blocks.
 
         // Linkify
-        $text = preg_replace('@([^:])(https?://([-\w\.]+)+(:\d+)?(/([%-\w/_\.]*(\?\S+)?)?)?)@', '$1<a href="$2">$2</a>', $text);
+        $text = \preg_replace('@([^:])(https?://([-\w\.]+)+(:\d+)?(/([%-\w/_\.]*(\?\S+)?)?)?)@', '$1<a href="$2">$2</a>', $text);
 
         // WikiLinkify
-        $text = preg_replace('@\[([A-Z]\w+)\]@', '<a href="' . $this->config->script_url . '/$1">$1</a>', $text);
-        $text = preg_replace('@\[([A-Z]\w+)\|([\w\s]+)\]@', '<a href="' . $this->config->script_url . '/$1">$2</a>', $text);
+        $text = \preg_replace('@\[([A-Z]\w+)\]@', '<a href="' . $this->config->script_url . '/$1">$1</a>', $text);
+        $text = \preg_replace('@\[([A-Z]\w+)\|([\w\s]+)\]@', '<a href="' . $this->config->script_url . '/$1">$2</a>', $text);
 
         // Textilify
         $textile = new \Textile();
