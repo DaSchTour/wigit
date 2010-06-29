@@ -31,4 +31,7 @@ return array(
         "remko" => "Remko Tronçon <git@el-tramo.be>",
         "guest" => "Guest <guest@el-tramo.be>"
     ),
+
+    // Timezone indentifier.
+    // 'timezone' => 'Europe/Berlin',
 );
