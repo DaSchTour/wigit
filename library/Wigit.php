@@ -101,6 +101,17 @@ class Core
         return $history;
     }
 
+    public function getGitIndex()
+    {
+        $index = array();
+	$output = array();
+        $this->git("ls-files", $output);
+	foreach ($output as $line) {
+	    $index[] = array("page" => $line);
+	}
+        return $index;
+    }
+
     public function getAuthorForUser($user)
     {
         if (isset($this->config->authors[$user])) {
@@ -262,6 +273,11 @@ class Core
 	function getGlobalHistoryURL() {
 		return "{$this->config->script_url}/history";
 	}
+
+    function getGlobalIndexURL() {
+        return "{$this->config->script_url}/index";
+    }
+
 
     function getHomeURL()
     {
