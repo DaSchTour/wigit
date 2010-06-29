@@ -128,8 +128,9 @@ class Core
      */
     public function git($command, &$output = "")
     {
-		$gitDir      = dirname(__FILE__) . "/{$this->config->data_dir}/.git";
-		$gitWorkTree = dirname(__FILE__) . "/{$this->config->data_dir}";
+		$gitDir      = __DIR__ . "/../{$this->config->data_dir}/.git";
+		$gitWorkTree = __DIR__ . "/../{$this->config->data_dir}";
+
 		$gitCommand  = "{$this->config->git} --git-dir=$gitDir --work-tree=$gitWorkTree $command";
 		$output      = array();
 		$result;
