@@ -10,8 +10,7 @@ return array(
     // The script to which all requests should be passed. The default is 
     // $BASE_URL/index.php?r= , which should work on all installations. If you
     // want to use pretty URLs, set this to $BASE_URL. (see README)
-    'script_url' => "$BASE_URL/index.php?r=",
-    //$SCRIPT_URL = "$BASE_URL";
+    'script_url' => "__BASE_URL__/index.php?r=",
 
     // Title of the wiki
     'title' => "WiGit",

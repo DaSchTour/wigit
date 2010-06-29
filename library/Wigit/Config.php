@@ -48,7 +48,11 @@ class Config
             return false;
         }
         foreach ($arr as $configKey => $configValue) {
-            $this->$configKey = $configValue;
+            $this->$configKey = str_replace(
+                '__BASE_URL__',
+                $this->base_url,
+                $configValue
+            );
         }
         return true;
     }
