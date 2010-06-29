@@ -80,7 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 		// Viewing
 		else if ($wikiSubPage == "view") {
 			if (!file_exists($wikiFile)) {
-				header("Location: " . $SCRIPT_URL . "/" . $resource["page"] . "/edit");
+				header("Location: " . $config->script_url . "/" . $resource["page"] . "/edit");
 				exit;
 			}
 
