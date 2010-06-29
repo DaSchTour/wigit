@@ -82,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 		if ($wikiPage == "history") {
 			$wikiHistory = $wigit->getGitHistory();
 			$wikiPage = "";
-			include getThemeDir() . "/history.php";
+			include $wigit->getThemeDir() . "/history.php";
 		}
 		// Viewing
 		else if ($wikiSubPage == "view") {
