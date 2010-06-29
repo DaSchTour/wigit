@@ -50,16 +50,16 @@ class Core
      */
     public function createNewPage($wikiPage, $author, $commitMessage)
     {
-        if (!$wigit->git("init")) {
+        if (!$this->git("init")) {
             throw new \RuntimeException("Could not init: $wikiPage");
         }
-        if (!$wigit->git("add $wikiPage")) {
+        if (!$this->git("add $wikiPage")) {
             throw new \RuntimeException("Could not add: $wikiPage");
         }
-        if (!$wigit->git("commit --allow-empty --no-verify --message='$commitMessage' --author='$author'")) {
+        if (!$this->git("commit --allow-empty --no-verify --message='$commitMessage' --author='$author'")) {
             throw new \RuntimeException("Could not commit: $wikiPage");
         }
-        if (!$wigit->git("gc")) {
+        if (!$this->git("gc")) {
             throw new \RuntimeException("Coult not gc: $wikiPage");
         }
         return true;
