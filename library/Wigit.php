@@ -219,17 +219,17 @@ class Core
     }
 
 	function getPostURL() {
-		$page = getPage();
+		$page = $this->getPage();
 		return "$this->config->script_url/$page";
 	}
 
 	function getEditURL() {
-		$page = getPage();
+		$page = $this->getPage();
 		return "$this->config->script_url/$page/edit";
 	}
 
 	function getHistoryURL() {
-		$page = getPage();
+		$page = $this->getPage();
 		return "$this->config->script_url/$page/history";
 	}
 	
