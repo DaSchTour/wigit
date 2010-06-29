@@ -11,9 +11,31 @@ class Core
 {
     protected $config;
 
+    /**
+     * @param \Wigit\Config $config
+     *
+     * @return $this
+     */
     public function __construct(Config $config)
     {
         $this->config = $config;
+    }
+
+    /**
+     *
+     * @return boolean
+     */
+    public function checkSetup()
+    {
+        $base = dirname(__DIR__);
+
+        if (!file_exists($base . '/' . $this->config->data_dir)) {
+            throw new \RuntimeException("No data_dir: {$this->config->data_dir}.");
+        }
+        if (!is_writable($base . '/' . $this->config->data_dir)) {
+            throw new \RuntimeException("data_dir {$this->config->data_dir} is not writable.");
+        }
+        return true;
     }
 
     /**

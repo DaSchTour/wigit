@@ -25,8 +25,9 @@ $wikiUser    = $wigit->getHTTPUser();
 $resource    = $wigit->parseResource($_GET['r']);
 $wikiPage    = $resource["page"];
 $wikiSubPage = $resource["type"];
-$wikiFile    = $config->data_dir . "/" . $wikiPage;
+$wikiFile    = __DIR__ . "/" . $config->data_dir . "/" . $wikiPage;
 
+$wigit->checkSetup();
 
 // --------------------------------------------------------------------------
 // Process request
@@ -86,7 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 			// Open the file
 			$handle = fopen($wikiFile, "r");
-			$data = fread($handle, filesize($wikiFile));
+			$data   = fread($handle, filesize($wikiFile));
 			fclose($handle);
 
 			// Put in template
