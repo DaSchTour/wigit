@@ -1,3 +1,8 @@
+Usability
+---------
+- Add web installer to create configuration file and data directory
+- Preview method
+
 Backend
 -------
 - Auto-insert newline after h*. section headers

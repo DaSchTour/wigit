@@ -28,7 +28,7 @@ a backend for tracking changes. Besides Git, this wiki makes use of Textile
 
  * Put the WiGit dir in some place where the webserver can find it
  * Make sure there's a 'data' subdir, and that it is writable by the webserver
- * Copy config.php.sample to config.php, and edit config.php to reflect your local settings
+ * In directory 'etc' copy config.php.sample to config.php, and edit config.php to reflect your local settings
  * Surf to the wigit URL, and you should start by editing the front page
 
 For URL rewriting, change the `script_url` to be the base URL prefix (as 
