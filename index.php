@@ -121,6 +121,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 		else {
 			print "Unknow subpage: " . $wikiSubPage;
 		}
+        exit;
 	}
     die("Unsupported METHOD: " . $_SERVER['REQUEST_METHOD']);
 ?>
