@@ -89,22 +89,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 			$wikiIndex = $wigit->getGitIndex();
 			include $wigit->getThemeDir() . "/index.php";
 		}
-	// Viewing
-		else if ($wikiSubPage == "view") {
-			if (!file_exists($wikiFile)) {
-				header("Location: " . $config->script_url . "/" . $resource["page"] . "/edit");
-				exit;
-			}
+        // Viewing
+        else if ($wikiSubPage == "view") {
+            if (!file_exists($wikiFile)) {
+                header("Location: " . $config->script_url . "/" . $resource["page"] . "/edit");
+                exit;
+            }
 
-			// Open the file
-			$handle = fopen($wikiFile, "r");
-			$data   = fread($handle, filesize($wikiFile));
-			fclose($handle);
+            // Open the file
+            $handle = fopen($wikiFile, "r");
+            $data   = fread($handle, filesize($wikiFile));
+            fclose($handle);
 
-			// Put in template
-			$wikiContent = $wigit->wikify($data);
-			include $wigit->getThemeDir() . "/view.php";
-		}
+            // Put in template
+            $wikiContent = $wigit->wikify($data);
+            include $wigit->getThemeDir() . "/view.php";
+        }
 		// Editing
 		else if ($wikiSubPage == "edit") {
 			if (file_exists($wikiFile)) {
