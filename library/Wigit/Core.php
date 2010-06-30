@@ -11,9 +11,19 @@ namespace Wigit;
  */
 class Core
 {
+    /**
+     * @var Config $config An instance of the \Wigit\Config.
+     */
     protected $config;
 
     /**
+     * @var string $authBackend Currently only 'http' is supported.
+     */
+    protected $authBackend = 'http';
+
+    /**
+     * Constructor!
+     *
      * @param \Wigit\Config $config
      *
      * @return $this
@@ -24,12 +34,14 @@ class Core
     }
 
     /**
+     * A simple method to check if the seup is correct. This could be disabled in
+     * index.php once it's verified that everything is setup correctly.
      *
      * @return boolean
      */
     public function checkSetup()
     {
-        $base = dirname(__DIR__);
+        $base = dirname(dirname(__DIR__));
 
         if (!file_exists($base . '/' . $this->config->data_dir)) {
             throw new \RuntimeException("No data_dir: {$this->config->data_dir}.");
@@ -89,6 +101,14 @@ class Core
         return $data;
     }
 
+    /**
+     * Receive the history of a file.
+     *
+     * @param string $file An optional parameter.
+     *
+     * @return array A numeric array stacked with associative arrays containing the
+     *               history.
+     */
     public function getGitHistory($file = "")
     {
         $output = array();
@@ -122,17 +142,26 @@ class Core
         return $history;
     }
 
+    /**
+     * @return array
+     */
     public function getGitIndex()
     {
-        $index = array();
-	$output = array();
+        $index  = array();
+        $output = array();
         $this->git("ls-files", $output);
-	foreach ($output as $line) {
-	    $index[] = array("page" => $line);
-	}
+        foreach ($output as $line) {
+	        $index[] = array("page" => $line);
+        }
         return $index;
     }
 
+    /**
+     * This relies on a local map in the config.
+     *
+     * @return string User <user@example.org>
+     * @uses   self::$config
+     */
     public function getAuthorForUser($user)
     {
         if (isset($this->config->authors[$user])) {
@@ -145,13 +174,28 @@ class Core
     }
 
     /**
-     * Return the current HTTP Auth user.
+     * Return the currently authenticated user.
      *
      * @return string
+     * @uses   self::$authBackend
      */
-    public function getHTTPUser()
+    public function getAuthenticatedUser()
     {
-        // This code is copied from phpMyID. Thanks to the phpMyID dev(s).
+        if ($this->authBackend == 'http') {
+            return $this->getHttpAuthUser();
+        }
+    }
+
+    /**
+     * This function determins the currently logged in user via HTTP Auth.
+     *
+     * The code was copied from phpMyID. Thanks to the phpMyID dev(s).
+     *
+     * @return string
+     * @uses   $_SERVER
+     */
+    protected function getHttpAuthUser()
+    {
         if (function_exists('apache_request_headers') && ini_get('safe_mode') == false) {
             $arh = apache_request_headers();
             $hdr = $arh['Authorization'];
