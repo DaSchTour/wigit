@@ -20,7 +20,7 @@ a backend for tracking changes. Besides Git, this wiki makes use of Textile
 ## Requirements
 
  * Webserver
- * PHP5.3
+ * PHP 5.3.2
  * Git
 
 
