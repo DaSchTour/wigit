@@ -20,7 +20,7 @@ $wigit = new Core($config);
 // Initialize globals
 // --------------------------------------------------------------------------
 
-$wikiUser    = $wigit->getHTTPUser();
+$wikiUser    = $wigit->getAuthenticatedUser();
 $resource    = $wigit->parseResource($_GET['r']);
 $wikiPage    = $resource["page"];
 $wikiSubPage = $resource["type"];
@@ -29,7 +29,7 @@ $wikiFile    = __DIR__ . "/" . $config->data_dir . "/" . $wikiPage;
 try {
     $wigit->checkSetup();
 } catch (\RuntimeException $e) {
-    $errorMsg = (string) $e;
+    $errorMsg = "Check setup: " . (string) $e;
     include $wigit->getThemeDir() . '/error.php';
     exit;
 }
