@@ -80,59 +80,61 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 if ($_SERVER['REQUEST_METHOD'] == 'GET') {
     // Global history
     if ($wikiPage == "history") {
-			$wikiHistory = $wigit->getGitHistory();
-			$wikiPage = "";
-			include $wigit->getThemeDir() . "/history.php";
-		}
-		// Page index
-		else if ($wikiPage == "index") {
-			$wikiIndex = $wigit->getGitIndex();
-			include $wigit->getThemeDir() . "/index.php";
-		}
-        // Viewing
-        else if ($wikiSubPage == "view") {
-            if (!file_exists($wikiFile)) {
-                header("Location: " . $config->script_url . "/" . $resource["page"] . "/edit");
-                exit;
-            }
-
-            // Open the file
-            $data = $wigit->getFileContents($wikiFile);
-
-            // Put in template
-            $wikiContent = $wigit->wikify($data);
-            include $wigit->getThemeDir() . "/view.php";
+        $wikiHistory = $wigit->getGitHistory();
+        $wikiPage = "";
+        include $wigit->getThemeDir() . "/history.php";
+    }
+    // Page index
+    else if ($wikiPage == "index") {
+        $wikiIndex = $wigit->getGitIndex();
+        include $wigit->getThemeDir() . "/index.php";
+    }
+    // Viewing
+    else if ($wikiSubPage == "view") {
+        if (!file_exists($wikiFile)) {
+            header("Location: " . $config->script_url . "/" . $resource["page"] . "/edit");
+            exit;
         }
-		// Editing
-		else if ($wikiSubPage == "edit") {
-			if (file_exists($wikiFile)) {
-                $data = $wigit->getFileContents($wikiFile);
-			}
 
-			// Put in template
-			$wikiData = $data;
-			include $wigit->getThemeDir() . "/edit.php";
-		}
-		// History
-		else if ($wikiSubPage == "history") {
-			$wikiHistory = $wigit->getGitHistory($wikiPage);
-			include $wigit->getThemeDir() . "/history.php";
-		}
-		// Specific version
-		else if (preg_match("/[0-9A-F]{20,20}/", $wikiSubPage)) {
-			$output = array();
-			if (!$wigit->git("cat-file -p " . $wikiSubPage . ":$wikiPage", $output)) {
-				exit('cat-file');
-			}
-			$wikiContent = $wigit->wikify(join("\n", $output));
-			include $wigit->getThemeDir() . "/view.php";
-		}
-		else {
-			$errorMsg = "Unknow subpage: " . $wikiSubPage;
-            include $wigit->getThemeDir() . '/error.php';
-		}
-        exit;
-	}
+        // Open the file
+        $data = $wigit->getFileContents($wikiFile);
+
+        // Put in template
+        $wikiContent = $wigit->wikify($data);
+        include $wigit->getThemeDir() . "/view.php";
+    }
+    // Editing
+    else if ($wikiSubPage == "edit") {
+        if (file_exists($wikiFile)) {
+            $data = $wigit->getFileContents($wikiFile);
+        } else {
+            $data = 'This page does not exist (yet).';
+        }
+
+        // Put in template
+        $wikiData = $data;
+        include $wigit->getThemeDir() . "/edit.php";
+    }
+    // History
+    else if ($wikiSubPage == "history") {
+        $wikiHistory = $wigit->getGitHistory($wikiPage);
+        include $wigit->getThemeDir() . "/history.php";
+    }
+    // Specific version
+    else if (preg_match("/[0-9A-F]{20,20}/", $wikiSubPage)) {
+        $output = array();
+        if (!$wigit->git("cat-file -p " . $wikiSubPage . ":$wikiPage", $output)) {
+            exit('cat-file');
+        }
+        $wikiContent = $wigit->wikify(join("\n", $output));
+        include $wigit->getThemeDir() . "/view.php";
+    }
+    else {
+        $errorMsg = "Unknow subpage: " . $wikiSubPage;
+        include $wigit->getThemeDir() . '/error.php';
+    }
+    exit;
+}
 
 $errorMsg = "Unsupported METHOD: " . $_SERVER['REQUEST_METHOD'];
 include $wigit->getThemeDir() . '/error.php';
