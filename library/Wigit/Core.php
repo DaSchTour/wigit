@@ -31,6 +31,8 @@ class Core
     public function __construct(Config $config)
     {
         $this->config = $config;
+        $this->base   = dirname(dirname(__DIR__));
+
     }
 
     /**
@@ -41,12 +43,10 @@ class Core
      */
     public function checkSetup()
     {
-        $base = dirname(dirname(__DIR__));
-
-        if (!file_exists($base . '/' . $this->config->data_dir)) {
+        if (!file_exists($this->base . '/' . $this->config->data_dir)) {
             throw new \RuntimeException("No data_dir: {$this->config->data_dir}.");
         }
-        if (!is_writable($base . '/' . $this->config->data_dir)) {
+        if (!is_writable($this->base . '/' . $this->config->data_dir)) {
             throw new \RuntimeException("data_dir {$this->config->data_dir} is not writable.");
         }
         if ($this->config->timezone) {
@@ -229,8 +229,8 @@ class Core
      */
     public function git($command, &$output = "")
     {
-		$gitDir      = __DIR__ . "/../{$this->config->data_dir}/.git";
-		$gitWorkTree = __DIR__ . "/../{$this->config->data_dir}";
+		$gitDir      = $this->base . "/{$this->config->data_dir}/.git";
+		$gitWorkTree = $this->base . "/{$this->config->data_dir}";
 
 		$gitCommand  = "{$this->config->git} --git-dir=$gitDir --work-tree=$gitWorkTree $command";
 		$output      = array();
