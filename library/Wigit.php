@@ -6,6 +6,8 @@ namespace Wigit;
  * @package   WiGit
  * @copyright (c) Remko Tronçon (http://el-tramo.be)
  * See COPYING for details
+ * @todo Remove all globals.
+ * @todo Fix up documentation, cs.
  */
 class Core
 {
@@ -35,9 +37,9 @@ class Core
         if (!is_writable($base . '/' . $this->config->data_dir)) {
             throw new \RuntimeException("data_dir {$this->config->data_dir} is not writable.");
         }
-	if ($this->config->timezone) {
+        if ($this->config->timezone) {
             date_default_timezone_set($this->config->timezone);
-	}
+        }
         return true;
     }
 
