@@ -8,7 +8,7 @@ namespace Wigit;
  */
 
 require_once __DIR__ . '/library/classTextile.php';
-require_once __DIR__ . '/library/Wigit.php';
+require_once __DIR__ . '/library/Wigit/Core.php';
 require_once __DIR__ . '/library/Wigit/Config.php';
 
     
