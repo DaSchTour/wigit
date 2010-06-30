@@ -77,9 +77,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     exit;
 }
 
-    if ($_SERVER['REQUEST_METHOD'] == 'GET') {
-		// Global history
-		if ($wikiPage == "history") {
+if ($_SERVER['REQUEST_METHOD'] == 'GET') {
+    // Global history
+    if ($wikiPage == "history") {
 			$wikiHistory = $wigit->getGitHistory();
 			$wikiPage = "";
 			include $wigit->getThemeDir() . "/history.php";
@@ -97,9 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
 
             // Open the file
-            $handle = fopen($wikiFile, "r");
-            $data   = fread($handle, filesize($wikiFile));
-            fclose($handle);
+            $data = $wigit->getFileContents($wikiFile);
 
             // Put in template
             $wikiContent = $wigit->wikify($data);
@@ -108,8 +106,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 		// Editing
 		else if ($wikiSubPage == "edit") {
 			if (file_exists($wikiFile)) {
-				$handle = fopen($wikiFile, "r");
-				$data = fread($handle, filesize($wikiFile));
+                $data = $wigit->getFileContents($wikiFile);
 			}
 
 			// Put in template

@@ -70,6 +70,25 @@ class Core
         return true;
     }
 
+    /**
+     * Wrapper around fopen, fread, fclose.
+     *
+     * @param string $file The filename to read/open.
+     *
+     * @return string
+     * @throws \RuntimeException When the file could not be opened.
+     */
+    public function getFileContents($file)
+    {
+        $fh = fopen($file, 'r');
+        if (!is_resource($fh)) {
+            throw \RuntimeException("Could not open file: {$file}");
+        }
+        $data = fread($fh, filesize($file));
+        fclose($fh);
+        return $data;
+    }
+
     public function getGitHistory($file = "")
     {
         $output = array();
