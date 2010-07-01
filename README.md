@@ -2,10 +2,12 @@
 
 ## About
 
-WiGit is a simple Wiki written in PHP, using Git (http://git.or.cz/) as 
-a backend for tracking changes. Besides Git, this wiki makes use of Textile
-(http://textile.thresholdstate.com/) for marking up text. 
+WiGit is a simple Wiki written in PHP, using [Git][] as 
+a backend for tracking changes. Besides Git, this wiki makes use of [Textile][]
+for marking up text. 
 
+[Git]: http://git.or.cz/
+[Textile]: http://textile.thresholdstate.com/
 
 ## Features
 
@@ -20,15 +22,20 @@ a backend for tracking changes. Besides Git, this wiki makes use of Textile
 ## Requirements
 
  * Webserver
- * PHP5.3
+ * PHP 5.3.2
  * Git
 
 
 ## Installation
 
  * Put the WiGit dir in some place where the webserver can find it
+<<<<<<< HEAD
  * Make sure there's a 'data' subdir, and that it is writable by the webserver
  * In directory 'etc' copy config.php.sample to config.php, and edit config.php to reflect your local settings
+=======
+ * Make sure there's a `data` subdir, and that it is writable by the webserver
+ * *Optionally*: In directory `etc` copy `config.php.sample` to `config.php`, and edit `config.php` to reflect your local settings
+>>>>>>> aa4f3aaab627158469e1939e728b8211213f3ebe
  * Surf to the wigit URL, and you should start by editing the front page
 
 For URL rewriting, change the `script_url` to be the base URL prefix (as 

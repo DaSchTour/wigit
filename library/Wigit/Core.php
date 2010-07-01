@@ -1,4 +1,4 @@
-<?php
+<?php 
 /**
  * +-----------------------------------------------------------------------+
  * | Copyright (c) 2009, Remko Tronçon                                     |
@@ -36,18 +36,42 @@
  * PHP version 5
  *
  * @category VersionControl
- * @package  Wigit
+ * @package  Wigit              
  * @author   Till Klampaeckel <till@php.net>
  * @license  http://www.opensource.org/licenses/bsd-license.php The BSD License
  * @version  GIT: $Id$
- * @link     http://github.com/till/wigit
+ * @link     http://github.com/till/wigit              
  */
-<<<<<<< HEAD
+namespace Wigit;
+
+/**
+ * Core
+ * 
+ * @category VersionControl
+ * @package  WiGit
+ * @author   Remko Tronçon <remko@el-tramo.be>
+ * @author   Till Klampaeckel <till@php.net>
+ * @license  http://www.opensource.org/licenses/bsd-license.php The BSD License
+ * @version  Release: @package_version@
+ * @link     http://github.com/till/wigit
+ * @todo     Remove all globals.
+ * @todo     Fix up documentation, cs.
+ */
 class Core
 {
+    /**
+     * @var Config $config An instance of the \Wigit\Config.
+     */
     protected $config;
 
     /**
+     * @var string $authBackend Currently only 'http' is supported.
+     */
+    protected $authBackend = 'http';
+
+    /**
+     * Constructor!
+     *
      * @param \Wigit\Config $config
      *
      * @return $this
@@ -55,25 +79,27 @@ class Core
     public function __construct(Config $config)
     {
         $this->config = $config;
+        $this->base   = dirname(dirname(__DIR__));
+
     }
 
     /**
+     * A simple method to check if the seup is correct. This could be disabled in
+     * index.php once it's verified that everything is setup correctly.
      *
      * @return boolean
      */
     public function checkSetup()
     {
-        $base = dirname(__DIR__);
-
-        if (!file_exists($base . '/' . $this->config->data_dir)) {
+        if (!file_exists($this->base . '/' . $this->config->data_dir)) {
             throw new \RuntimeException("No data_dir: {$this->config->data_dir}.");
         }
-        if (!is_writable($base . '/' . $this->config->data_dir)) {
+        if (!is_writable($this->base . '/' . $this->config->data_dir)) {
             throw new \RuntimeException("data_dir {$this->config->data_dir} is not writable.");
         }
-	if ($this->config->timezone) {
+        if ($this->config->timezone) {
             date_default_timezone_set($this->config->timezone);
-	}
+        }
         return true;
     }
 
@@ -104,6 +130,33 @@ class Core
         return true;
     }
 
+    /**
+     * Wrapper around fopen, fread, fclose.
+     *
+     * @param string $file The filename to read/open.
+     *
+     * @return string
+     * @throws \RuntimeException When the file could not be opened.
+     */
+    public function getFileContents($file)
+    {
+        $fh = fopen($file, 'r');
+        if (!is_resource($fh)) {
+            throw \RuntimeException("Could not open file: {$file}");
+        }
+        $data = fread($fh, filesize($file));
+        fclose($fh);
+        return $data;
+    }
+
+    /**
+     * Receive the history of a file.
+     *
+     * @param string $file An optional parameter.
+     *
+     * @return array A numeric array stacked with associative arrays containing the
+     *               history.
+     */
     public function getGitHistory($file = "")
     {
         $output = array();
@@ -137,17 +190,26 @@ class Core
         return $history;
     }
 
+    /**
+     * @return array
+     */
     public function getGitIndex()
     {
-        $index = array();
-	$output = array();
+        $index  = array();
+        $output = array();
         $this->git("ls-files", $output);
-	foreach ($output as $line) {
-	    $index[] = array("page" => $line);
-	}
+        foreach ($output as $line) {
+	        $index[] = array("page" => $line);
+        }
         return $index;
     }
 
+    /**
+     * This relies on a local map in the config.
+     *
+     * @return string User <user@example.org>
+     * @uses   self::$config
+     */
     public function getAuthorForUser($user)
     {
         if (isset($this->config->authors[$user])) {
@@ -160,13 +222,28 @@ class Core
     }
 
     /**
-     * Return the current HTTP Auth user.
+     * Return the currently authenticated user.
      *
      * @return string
+     * @uses   self::$authBackend
      */
-    public function getHTTPUser()
+    public function getAuthenticatedUser()
     {
-        // This code is copied from phpMyID. Thanks to the phpMyID dev(s).
+        if ($this->authBackend == 'http') {
+            return $this->getHttpAuthUser();
+        }
+    }
+
+    /**
+     * This function determins the currently logged in user via HTTP Auth.
+     *
+     * The code was copied from phpMyID. Thanks to the phpMyID dev(s).
+     *
+     * @return string
+     * @uses   $_SERVER
+     */
+    protected function getHttpAuthUser()
+    {
         if (function_exists('apache_request_headers') && ini_get('safe_mode') == false) {
             $arh = apache_request_headers();
             $hdr = $arh['Authorization'];
@@ -200,8 +277,8 @@ class Core
      */
     public function git($command, &$output = "")
     {
-		$gitDir      = __DIR__ . "/../{$this->config->data_dir}/.git";
-		$gitWorkTree = __DIR__ . "/../{$this->config->data_dir}";
+		$gitDir      = $this->base . "/{$this->config->data_dir}/.git";
+		$gitWorkTree = $this->base . "/{$this->config->data_dir}";
 
 		$gitCommand  = "{$this->config->git} --git-dir=$gitDir --work-tree=$gitWorkTree $command";
 		$output      = array();
@@ -364,7 +441,3 @@ class Core
         return $wikiData;
     }
 }
-=======
-require_once __DIR__ . '/Wigit/Core.php';
-require_once __DIR__ . '/Wigit/Config.php';
->>>>>>> aa4f3aaab627158469e1939e728b8211213f3ebe
