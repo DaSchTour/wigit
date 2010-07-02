@@ -114,67 +114,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     exit;
 }
 
-<<<<<<< HEAD
-    if ($_SERVER['REQUEST_METHOD'] == 'GET') {
-		// Global history
-		if ($wikiPage == "history") {
-			$wikiHistory = $wigit->getGitHistory();
-			$wikiPage = "";
-			include $wigit->getThemeDir() . "/history.php";
-		}
-		// Page index
-		else if ($wikiPage == "index") {
-			$wikiIndex = $wigit->getGitIndex();
-			include $wigit->getThemeDir() . "/index.php";
-		}
-	// Viewing
-		else if ($wikiSubPage == "view") {
-			if (!file_exists($wikiFile)) {
-				header("Location: " . $config->script_url . "/" . $resource["page"] . "/edit");
-				exit;
-			}
-
-			// Open the file
-			$handle = fopen($wikiFile, "r");
-			$data   = fread($handle, filesize($wikiFile));
-			fclose($handle);
-
-			// Put in template
-			$wikiContent = $wigit->wikify($data);
-			include $wigit->getThemeDir() . "/view.php";
-		}
-		// Editing
-		else if ($wikiSubPage == "edit") {
-			if (file_exists($wikiFile)) {
-				$handle = fopen($wikiFile, "r");
-				$data = fread($handle, filesize($wikiFile));
-			}
-
-			// Put in template
-			$wikiData = $data;
-			include $wigit->getThemeDir() . "/edit.php";
-		}
-		// History
-		else if ($wikiSubPage == "history") {
-			$wikiHistory = $wigit->getGitHistory($wikiPage);
-			include $wigit->getThemeDir() . "/history.php";
-		}
-		// Specific version
-		else if (preg_match("/[0-9A-F]{20,20}/", $wikiSubPage)) {
-			$output = array();
-			if (!$wigit->git("cat-file -p " . $wikiSubPage . ":$wikiPage", $output)) {
-				exit('cat-file');
-			}
-			$wikiContent = $wigit->wikify(join("\n", $output));
-			include $wigit->getThemeDir() . "/view.php";
-		}
-		else {
-			$errorMsg = "Unknow subpage: " . $wikiSubPage;
-            include $wigit->getThemeDir() . '/error.php';
-		}
-        exit;
-	}
-=======
 if ($_SERVER['REQUEST_METHOD'] == 'GET') {
     // Global history
     if ($wikiPage == "history") {
@@ -233,7 +172,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
     }
     exit;
 }
->>>>>>> aa4f3aaab627158469e1939e728b8211213f3ebe
 
 $errorMsg = "Unsupported METHOD: " . $_SERVER['REQUEST_METHOD'];
 include $wigit->getThemeDir() . '/error.php';

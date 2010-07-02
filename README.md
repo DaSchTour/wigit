@@ -29,13 +29,8 @@ for marking up text.
 ## Installation
 
  * Put the WiGit dir in some place where the webserver can find it
-<<<<<<< HEAD
- * Make sure there's a 'data' subdir, and that it is writable by the webserver
- * In directory 'etc' copy config.php.sample to config.php, and edit config.php to reflect your local settings
-=======
  * Make sure there's a `data` subdir, and that it is writable by the webserver
  * *Optionally*: In directory `etc` copy `config.php.sample` to `config.php`, and edit `config.php` to reflect your local settings
->>>>>>> aa4f3aaab627158469e1939e728b8211213f3ebe
  * Surf to the wigit URL, and you should start by editing the front page
 
 For URL rewriting, change the `script_url` to be the base URL prefix (as 
