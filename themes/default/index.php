@@ -25,7 +25,8 @@
 			<?php 
 				foreach ($wikiIndex as $item) {
 					print "<tr>"
-						. "<td class='page'><a href=\"" . $wigit->getViewURL($item["page"]) . "\">" . $item["page"] . "</a></td>"
+						. "<td class='page'><a href=\"" . $wigit->getViewURL($item["page"]) . "\">" 
+						. htmlspecialchars($item["page"]) . "</a></td>"
 						#. "<td>" . $item["date"] . "</td>"
 						#. "<td class='author'>" . $item["linked-author"] . "</td>"
 						#. "<td>" . $item["message"] . "</td>"
