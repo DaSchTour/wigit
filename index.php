@@ -175,3 +175,5 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
 
 $errorMsg = "Unsupported METHOD: " . $_SERVER['REQUEST_METHOD'];
 include $wigit->getThemeDir() . '/error.php';
+
+?>

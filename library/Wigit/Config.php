@@ -100,6 +100,9 @@ class Config
                 $configValue
             );
         }
+        if (substr($this->script_url,-1)=='/') {
+            $this->script_url = substr($this->script_url,0,-1);
+        }
         return true;
     }
 }

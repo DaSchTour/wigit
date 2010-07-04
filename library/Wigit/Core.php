@@ -84,8 +84,7 @@ class Core
     }
 
     /**
-     * A simple method to check if the seup is correct. This could be disabled in
-     * index.php once it's verified that everything is setup correctly.
+     * Check and apply setup.
      *
      * @return boolean
      */
@@ -199,7 +198,9 @@ class Core
         $output = array();
         $this->git("ls-files", $output);
         foreach ($output as $line) {
-	        $index[] = array("page" => $line);
+            # FIXME: this will fail if a filename contains disallowed character
+            $page = $this->fileToName($line);
+	        $index[] = array("page" => $page);
         }
         return $index;
     }
@@ -246,7 +247,7 @@ class Core
     {
         if (function_exists('apache_request_headers') && ini_get('safe_mode') == false) {
             $arh = apache_request_headers();
-            $hdr = $arh['Authorization'];
+            $hdr = @$arh['Authorization'];
         } elseif (isset($_SERVER['PHP_AUTH_DIGEST'])) {
             $hdr = $_SERVER['PHP_AUTH_DIGEST'];
         } elseif (isset($_SERVER['HTTP_AUTHORIZATION'])) {
@@ -268,11 +269,16 @@ class Core
                 }
             }
         }
-        return $_SERVER['PHP_AUTH_USER'];
+        return @$_SERVER['PHP_AUTH_USER'];
     }
 
     /**
-     * @param string $command
+     * Execute git.
+     *
+     * The $command parameter is used as list of command line arguments
+     * so be sure to approriately escape it to avoid code injection.
+     *
+     * @param string $command git command as specified on the command line
      * @param string $output
      */
     public function git($command, &$output = "")
@@ -285,8 +291,10 @@ class Core
 		$result;
 
 		// FIXME: Only do the escaping and the 2>&1 if we're not in safe mode 
-		// (otherwise it will be escaped anyway).
+		// (otherwise it will be escaped anyway). On the other hand safe mode
+                // deprecated in PHP >= 5.3.0 anyway
 		// FIXME: Removed escapeShellCmd because it clashed with author.
+                // FIXME: use proc_open instead of exec
 		$oldUMask = umask(0022);
 		exec($gitCommand . " 2>&1", $output, $result);
 		$umask = $oldUMask;
@@ -304,6 +312,29 @@ class Core
 		return 1;
 	}
 
+    public function nameToFile($name) 
+    {
+        return str_replace( $this->disallowedChars, 
+            $this->disallowedReplace, $name);
+    }
+
+    /**
+     * Map a file name to a page name.
+     *
+     * In addition to URI decoding disallowed such as line breaks are removed.
+     * To check whether a file name is cleanly escaped you must pass the return
+     * value of this function to 'nameToFile' and compare the filenames.
+     *
+     * @return string the unescaped page name as Unicode string
+     */
+    public function fileToName($file)
+    {
+        $name = urldecode($file);
+        $name = str_replace(array("\n","\r"),array("",""),$name);
+        # FIXME: $name may include non-unicode characters
+        return $name;
+    }
+ 
     protected function sanitizeName($name)
     {
         return \preg_replace("[^A-Za-z0-9]", "_", $name);
@@ -449,4 +480,13 @@ class Core
         global $wikiData;
         return $wikiData;
     }
+
+    // Disallowed characters in Unix filesystems, Windows (NTFS) or HFS+ (Mac)
+    protected static $disallowedChars = array(
+        '"','*',':','<','>','?','\\','/','|',
+        '%','\'','.' // % and ' for escaping, . for hidden files and extension
+    );
+    protected static $disallowedReplace = array(
+        '%22','%2A','%3A','%3C','%3E','%3F','%5C','%2F','%7C','%25','%27','%2E'
+    );
 }
