@@ -66,6 +66,7 @@ class Config
     public $authors        = array();
     public $theme          = 'default';
     public $timezone;
+    public $default_action = 'view';
 
     /**
      * Constructor.
