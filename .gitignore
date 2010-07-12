@@ -2,3 +2,7 @@
 data/*
 etc/config.php
 .htaccess
+
+# https://simpletest.svn.sourceforge.net/svnroot/simpletest/simpletest/trunk/ 
+test/simpletest/*
+
