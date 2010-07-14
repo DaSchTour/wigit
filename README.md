@@ -43,14 +43,14 @@ your webserver. E.g.,
         RewriteEngine On
         RewriteBase /wigit/
         RewriteCond %{REQUEST_FILENAME} !-f
-        RewriteRule (.*) /wigit/index.php?r=$1 [L] 
+        RewriteRule (.*) /wigit/index.php [QSA,L] 
     </IfModule>
 
  * For lighttpd, add the following to your config file:
 
     url.rewrite-once = (
         "^/wigit/themes/(.*)" => "$0",
-        "^/wigit(.*)" => "/wigit/index.php?r=$1",
+        "^/wigit(.*)" => "/wigit/index.php",
     )
 
 (where /wigit is replaced by your own base url)
