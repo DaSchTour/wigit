@@ -40,6 +40,9 @@ class QueryTest extends TestBase {
         11 => array('/','v','home','GET','/%3C',array(),'<','',array()),
         12 => array('/','v','home','GET','/%25',array(),'%','',array()),
         // TODO: test parameter 'p' and 'a'
+        13 => array('/','v','home','POST','//foo',array(),'POST','foo',array()),
+        14 => array('/','v','home','POST','//foo',array('a'=>'preview'),
+              'preview','foo',array()),
     );
 
     function __construct() {

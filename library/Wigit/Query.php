@@ -103,10 +103,15 @@ class Query {
         $method = @$_SERVER['REQUEST_METHOD'];
 
         // Map HTTP requests methods to actions.
-        // All request methods but GET override other ways to specify actions
+        // All request methods but GET and POST override other ways to specify 
+        // actions
         if ($method == 'GET' || "$method" == '') {
             if ($this->action == '') {
                 $this->action = $config->default_action;
+            }
+        } else if ($method == 'POST') {
+            if ($this->action == '') {
+               $this->action = 'POST';
             }
         } else {
             $this->action = $method;
@@ -169,6 +174,10 @@ class Query {
      */
     public function getParameters() {
         return $this->parameters;
+    }
+
+    public function getParam($key) {
+        return $this->parameters[$key];
     }
 
     public function getURL($page="", $action="") {

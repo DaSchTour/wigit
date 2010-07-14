@@ -80,35 +80,14 @@ $wikiFilename = $wigit->nameToFile($wikiPage);
 $wikiFile     = __DIR__ . "/" . $config->data_dir . "/" . $wikiFilename;
 
 if ($query->getAction() == 'POST') {
-    if (!isset($_POST['data'])) {
-        header("Location:{$wikiHome}?msg=noPostDataSet");
-        exit;
-    }
-    if (trim($_POST['data']) == "") {
-        // Delete
-       	if (file_exists($wikiFile)) {
-            if (!$wigit->git("rm $wikiFilename")) {
-                exit('rm');
-            }
-
-   	    	$commitMessage = addslashes("Deleted $wikiPage");
-        	$author        = addslashes($wigit->getAuthorForUser($wigit->getUser()));
-	        if (!$wigit->git("commit --allow-empty --no-verify --message='$commitMessage' --author='$author'")) {
-                exit('commit');
-            }
-  			if (!$wigit->git("gc")) {
-                exit('gc');
-            }
-        }
-        header("Location: " . $query->getURL());
-	    exit;
-    }
 
     // Save (TODO: does not work for page named "./%")
     $handle = fopen($wikiFile, "w");
-    fputs($handle, stripslashes($_POST['data']));
+    $data = $query->getParam('data');
+    fputs($handle, stripslashes($data));
     fclose($handle);
 
+    // TODO: if page does not exist use "Created"
     $commitMessage = addslashes("Changed $wikiPage");
     $author        = addslashes($wigit->getAuthorForUser($wigit->getUser()));
 
@@ -117,6 +96,25 @@ if ($query->getAction() == 'POST') {
     header("Location: " . $query->getURL($wikiPage));
     exit;
 } 
+else if ($query->getAction() == "DELETE") {
+    // Delete
+    if (file_exists($wikiFile)) {
+        if (!$wigit->git("rm $wikiFilename")) {
+            exit('rm');
+        }
+
+        $commitMessage = addslashes("Deleted $wikiPage");
+        $author        = addslashes($wigit->getAuthorForUser($wigit->getUser()));
+        if (!$wigit->git("commit --allow-empty --no-verify --message='$commitMessage' --author='$author'")) {
+            exit('commit');
+        }
+        if (!$wigit->git("gc")) {
+            exit('gc');
+        }
+    }
+    header("Location: " . $query->getPageURL());
+    exit;
+}
 // Global history
 else if ($query->getAction() == "history") {
     $wikiHistory = $wigit->getGitHistory();
@@ -128,8 +126,17 @@ else if ($query->getAction() == "index") {
     $wikiIndex = $wigit->getGitIndex();
     include $wigit->getThemeDir() . "/index.php";
 }
+else if ($query->getAction() == "preview") {
+
+    $wikiData = $query->getParam("data");
+
+    // Put in template
+    $wikiContent = $wigit->wikify($wikiData);
+
+    include $wigit->getThemeDir() . "/edit.php";
+
 // Viewing
-else if ($query->getAction() == "view") {
+} else if ($query->getAction() == "view") {
     if (!file_exists($wikiFile)) {
         header("Location: " . $query->getURL($wikiPage,"edit"));
         exit;

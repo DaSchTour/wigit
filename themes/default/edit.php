@@ -11,10 +11,18 @@
 			<h1 id="title">Editing <?php print $wigit->getPageHTML() ?></h1>
 		</div>
 
+        <?php if (isset($wikiContent) && $wikiContent) {
+            print "<h3>Preview</h3>";
+            print "<div id='preview'>$wikiContent</div>\n";
+        }?>
+
 		<div id="form">
-			<form method="post" action="<?php print $query->getPageURL("POST"); ?>">
-				<p><textarea name="data" cols="80" rows="20" style="width: 100%"><?php print $wigit->getRawData(); ?></textarea></p>
-				<p><input type="submit" value="publish" /></p>
+			<form method="post" action="<?php print $query->getPageURL(); ?>">
+				<p><textarea name="data" cols="80" rows="20" style="width: 100%"><?php print $wikiData; ?></textarea></p>
+				<p>
+                  <input type="submit" value="publish" />
+                  <input type="submit" name="a" value="preview" />
+                </p>
 			</form>
 		</div>
 
