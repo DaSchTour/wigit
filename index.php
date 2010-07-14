@@ -74,8 +74,10 @@ try {
 
 $query = new Query($config);
 
-$wikiPage    = $query->getPagename();
-$wikiFile    = __DIR__ . "/" . $config->data_dir . "/" . $wikiPage;
+$wikiPage     = $query->getPagename();
+$wikiFilename = $wigit->nameToFile($wikiPage);
+
+$wikiFile     = __DIR__ . "/" . $config->data_dir . "/" . $wikiFilename;
 
 if ($query->getAction() == 'POST') {
     if (!isset($_POST['data'])) {
@@ -85,7 +87,7 @@ if ($query->getAction() == 'POST') {
     if (trim($_POST['data']) == "") {
         // Delete
        	if (file_exists($wikiFile)) {
-            if (!$wigit->git("rm $wikiPage")) {
+            if (!$wigit->git("rm $wikiFilename")) {
                 exit('rm');
             }
 
@@ -98,11 +100,11 @@ if ($query->getAction() == 'POST') {
                 exit('gc');
             }
         }
-        TODO: header("Location: " . $query->getURL());
+        header("Location: " . $query->getURL());
 	    exit;
     }
 
-    // Save
+    // Save (TODO: does not work for page named "./%")
     $handle = fopen($wikiFile, "w");
     fputs($handle, stripslashes($_POST['data']));
     fclose($handle);
@@ -160,7 +162,7 @@ else if ($query->getAction() == "history") {
 // Specific version
 else if (preg_match("/[0-9A-F]{20,20}/i", $query->getAction())) {
     $output = array();
-    if (!$wigit->git("cat-file -p " . $query->getAction() . ":$wikiPage", $output)) {
+    if (!$wigit->git("cat-file -p " . $query->getAction() . ":$wikiFilename", $output)) {
         exit('cat-file');
     }
     $wikiContent = $wigit->wikify(join("\n", $output));
@@ -168,6 +170,8 @@ else if (preg_match("/[0-9A-F]{20,20}/i", $query->getAction())) {
 }
 else {
     $action = $query->getAction();
+    // TODO: test this
+    if ($query->getPagename() != "") $action .= "/".$query->getPagename();
     $haction = htmlspecialchars($action);
     $errorMsg = "Unknow action: $haction! Did you mean page " .
                 "<a href='" . $query->getURL($action) . "'>$haction</a>?";

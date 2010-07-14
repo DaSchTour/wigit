@@ -26,6 +26,7 @@ if (!$is_included) {
     class FileTestSuite extends TestSuite {
         function FileTestSuite() {
             $this->TestSuite('All file tests');
+            $this->addFile(__DIR__.'/core.php');
             $this->addFile(__DIR__.'/query.php');
             # ...add more files...
         }

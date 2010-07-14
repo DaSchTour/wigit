@@ -105,7 +105,7 @@ class Core
     /**
      * Add and commit a new wikipage.
      *
-     * @param string $wikiPage      The filename of the wikipage.
+     * @param string $wikiPage      The pagename of the wikipage.
      * @param string $author        The name of the author: foo <foo@example.org>
      * @param string $commitMessage The commit message.
      *
@@ -117,7 +117,9 @@ class Core
         if (!$this->git("init")) {
             throw new \RuntimeException("Could not init: $wikiPage");
         }
-        if (!$this->git("add $wikiPage")) {
+        # TODO: move this duplicated code
+        $wikiFilename = $this->nameToFile($wikiPage);
+        if (!$this->git("add $wikiFilename")) {
             throw new \RuntimeException("Could not add: $wikiPage");
         }
         if (!$this->git("commit --allow-empty --no-verify --message='$commitMessage' --author='$author'")) {
@@ -182,7 +184,7 @@ class Core
                 );
 
 			} else if (!isset($historyItem["page"])) {
-                $historyItem["page"] = $line;
+                $historyItem["page"] = $this->fileToName($line);
                 $history[]           = $historyItem;
             }
         }
@@ -312,10 +314,23 @@ class Core
 		return 1;
 	}
 
-    public function nameToFile($name) 
+    // Disallowed characters in Unix filesystems, Windows (NTFS) or HFS+ (Mac)
+    protected $disallowedChars = array(
+        '"','*',':','<','>','?','\\','/','|',
+        '\'','.' // % and ' for escaping, . for hidden files and extension
+    );
+    protected $disallowedReplace = array(
+        '%22','%2A','%3A','%3C','%3E','%3F','%5C','%2F','%7C',
+        '%27','%2E'
+    );
+
+    public function nameToFile($name)  # name must be valid unicode!
     {
-        return str_replace( $this->disallowedChars, 
+        $name = str_replace(array("\n","\r"),array("",""),$name);
+        $name = str_replace('%','%25',$name);
+        $name = str_replace( $this->disallowedChars, 
             $this->disallowedReplace, $name);
+        return $name;
     }
 
     /**
@@ -333,37 +348,6 @@ class Core
         $name = str_replace(array("\n","\r"),array("",""),$name);
         # FIXME: $name may include non-unicode characters
         return $name;
-    }
- 
-    protected function sanitizeName($name)
-    {
-        return \preg_replace("[^A-Za-z0-9]", "_", $name);
-    }
-
-    public function parseResource($resource)
-    {
-
-        $matches = array();
-        $page    = "";
-        $type    = "";
-        if (preg_match("=\/(.*)\/(.*)=", $resource, $matches)) {
-
-            $page = $this->sanitizeName($matches[1]);
-            $type = $matches[2];
-
-        } else if (preg_match("=\/(.*)=", $resource, $matches)) {
-
-            $page = $this->sanitizeName($matches[1]);
-
-        }
-
-        if ($page == "") {
-            $page = $this->config->default_page;
-        }
-        if ($type == "") {
-            $type = "view";
-        }
-        return array("page" => $page, "type" => $type);
     }
 
 
@@ -444,12 +428,4 @@ class Core
         return $wikiData;
     }
 
-    // Disallowed characters in Unix filesystems, Windows (NTFS) or HFS+ (Mac)
-    protected static $disallowedChars = array(
-        '"','*',':','<','>','?','\\','/','|',
-        '%','\'','.' // % and ' for escaping, . for hidden files and extension
-    );
-    protected static $disallowedReplace = array(
-        '%22','%2A','%3A','%3C','%3E','%3F','%5C','%2F','%7C','%25','%27','%2E'
-    );
 }

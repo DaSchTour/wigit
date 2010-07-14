@@ -110,7 +110,7 @@ class Query {
             }
         } else {
             $this->action = $method;
-        } # FIXME: support HTTP PUT
+        } # NOTE: support HTTP PUT?
 
         foreach($_REQUEST as $key => $value) {
             if (preg_match('/^(p|page|a|action)$/',$key)) continue;
@@ -173,7 +173,14 @@ class Query {
 
     public function getURL($page="", $action="") {
         $url = $this->config->base_url . "$action";
-        if ($page != "") $url .= "/" . urlencode($page);
+        if ($page != "") {
+            $page = urlencode($page);
+            if (strpos($page,'%2F') !== FALSE) {
+                $url .= "?p=$page";
+            } else {
+                $url .= "/$page";
+            }
+        }
         return $url;
     }
 

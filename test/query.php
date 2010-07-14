@@ -14,13 +14,13 @@ class QueryTest extends TestBase {
         ),
         // other HTTP requests but 'GET' and other default action
         1 => array('/','view','foo','DELETE','/',array(),
-            'delete','foo',array()
+            'DELETE','',array()
         ),
         2 => array('/','view','foo','HEAD','/',array(),
-            'head','foo',array()
+            'HEAD','',array() # TODO: should this use default page?
         ),
         3 => array('/','view','foo','XYZ','/',array(),
-            'xyz','foo',array()
+            'XYZ','',array() 
         ),
         4 => array('/','default','foo','','/',array(),
             'default','foo',array()
@@ -30,15 +30,15 @@ class QueryTest extends TestBase {
             'view','bar',array()
         ),
         6 => array('/','view','home','GET','/bar',array(),
-            'bar','home',array()
+            'bar','',array()
         ),
-        7 => array('/','view','home','GET','/x/',array(),'x','home',array()),
+        7 => array('/','view','home','GET','/x/',array(),'x','',array()),
         8 => array('/','view','home','GET','/x/0',array(),'x','0',array()),
         9 => array('/','view','home','GET','/0/x',array(),'0','x',array()),
         10 => array('/','view','home','GET','/a/b/c',array(),'a','b/c',array()),
         // URL encoding
-        11 => array('/','v','home','GET','/%3C',array(),'<','home',array()),
-        12 => array('/','v','home','GET','/%25',array(),'%','home',array()),
+        11 => array('/','v','home','GET','/%3C',array(),'<','',array()),
+        12 => array('/','v','home','GET','/%25',array(),'%','',array()),
         // TODO: test parameter 'p' and 'a'
     );
 
