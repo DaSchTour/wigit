@@ -6,13 +6,7 @@
 		<link rel="stylesheet" type="text/css" href="<?php print $wigit->getCSSURL() ?>" />
 	</head>
 	<body>
-		<div id="navigation">
-			<p><a href="<?php print $wigit->getHomeURL() ?>">Home</a> 
-			| <a href="<?php print $wigit->getGlobalHistoryURL() ?>">History</a>
-			| <a href="<?php print $wigit->getGlobalIndexURL() ?>">Index</a>
-			<?php if ($wigit->getUser() != "") { ?>| Logged in as <?php print $wigit->getUser(); } ?>
-			</p>
-		</div>
+        <?php include __DIR__ . '/navigation.php'; ?>
 
 		<div id="header">
 			<h1 id="title"><?php print $indexTitle ?></h1>
@@ -25,7 +19,7 @@
 			<?php 
 				foreach ($wikiIndex as $item) {
 					print "<tr>"
-						. "<td class='page'><a href=\"" . $wigit->getViewURL($item["page"]) . "\">" 
+						. "<td class='page'><a href=\"" . $query->getURL($item["page"]) . "\">" 
 						. htmlspecialchars($item["page"]) . "</a></td>"
 						#. "<td>" . $item["date"] . "</td>"
 						#. "<td class='author'>" . $item["linked-author"] . "</td>"

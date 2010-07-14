@@ -391,43 +391,6 @@ class Core
     // Utility functions (for use inside templates)
     // --------------------------------------------------------------------------
 
-    function getViewURL($page, $version = null)
-    {
-        if ($version !== null) {
-            return "{$this->config->script_url}/{$page}/{$version}";
-        }
-        return "{$this->config->script_url}/{$page}";
-    }
-
-	function getPostURL() {
-		$page = $this->getPage();
-		return "{$this->config->script_url}/{$page}";
-	}
-
-	function getEditURL() {
-		$page = $this->getPage();
-		return "{$this->config->script_url}/{$page}/edit";
-	}
-
-	function getHistoryURL() {
-		$page = $this->getPage();
-		return "{$this->config->script_url}/$page/history";
-	}
-	
-	function getGlobalHistoryURL() {
-		return "{$this->config->script_url}/history";
-	}
-
-    function getGlobalIndexURL() {
-        return "{$this->config->script_url}/index";
-    }
-
-
-    function getHomeURL()
-    {
-        return "{$this->config->script_url}/";
-    }
-
 	function getUser()
     {
 		global $wikiUser;

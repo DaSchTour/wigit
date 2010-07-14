@@ -4,8 +4,8 @@ return array(
     'git' => "/usr/local/git/bin/git",
 
     // Base URL of the wigit instalation. This will be prepended to all links
-    // to internal files.
-    'base_url' => "/wigit",
+    // to internal files. Must end with a slash.
+    'base_url' => "/wigit/",
 
     // The script to which all requests should be passed. The default is 
     // $BASE_URL/index.php?r= , which should work on all installations. If you

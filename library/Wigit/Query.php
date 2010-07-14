@@ -37,7 +37,7 @@
  *
  * @category VersionControl
  * @package  Wigit
- * @author   Jakob Voß <jakob@nichtich.de
+ * @author   Jakob Voß <jakob@nichtich.de>
  * @license  http://www.opensource.org/licenses/bsd-license.php The BSD License
  * @version  GIT: $Id$
  * @link     http://github.com/nichtich/wigit
@@ -51,9 +51,10 @@ namespace Wigit;
  * This class can maps HTTP requests to queries and vice versa.
  */
 class Query {
-    protected $action;
-    protected $page;
-    protected $parameters = array();
+    private $action;
+    private $page;
+    private $parameters = array();
+    private $config;
 
     /**
      * Create a query by parsing a HTTP request.
@@ -72,30 +73,23 @@ class Query {
      * contains line breaks then it is set to the empty string. If the right
      * PEAR module is installed, it is also normalized to Unicode normalization
      * form C (NFC).
-     *
-     * Some examples and test cases of HTTP requests mapped to Query objects:
-     *
-     * //foo        => p=foo
-     * /foo         => a=foo
-     * /foo/        => a=foo
-     * /foo/0       => a=foo p=0
-     * /foo/bar     => a=foo p=bar
-     * /0/bar       => a=0 p=bar
-     * /foo/bar/doz => a=foo p=bar/doz
      */
     public function __construct($config) {
-        global $_REQUEST;
+        global $_SERVER, $_REQUEST;
+
+        $this->config = $config;
 
         $this->action = @$_REQUEST['a'];
         $this->page   = @$_REQUEST['p'];
 
         # request without query part
         $path = preg_replace('/\?.*$/','',@$_SERVER['REQUEST_URI']);
-        $path = substr($path,strlen($config->base_url)+1);
+        $path = substr($path,strlen($config->base_url));
+        $path = urldecode($path);
 
         if (isset($path) && $path != '') {
             if (substr($path,0,1) == '/') {
-                $this->page = $path;
+                $this->page = substr($path,1);
             } else {
                 $parts = explode('/',$path,2);
                 $this->action = $parts[0];
@@ -104,13 +98,14 @@ class Query {
                 }
             }
         }
+        if ($this->page === null) $this->page = "";
 
         $method = @$_SERVER['REQUEST_METHOD'];
 
         // Map HTTP requests methods to actions.
         // All request methods but GET override other ways to specify actions
-        if ($method == 'GET') {
-            if (!$this->action) { // any false action is mapped to the default
+        if ($method == 'GET' || "$method" == '') {
+            if ($this->action == '') {
                 $this->action = $config->default_action;
             }
         } else {
@@ -126,10 +121,10 @@ class Query {
         if (preg_match('[^A-Za-z0-9-]', $this->action)) {
             $this->action = '';
         } else {
-            $this->action = strtolower($this->action);
+            $this->action = $this->action;
         }
 
-        if ($this->page == '') {
+        if ($this->page == '' && $this->action == $config->default_action) {
             $this->page = $config->default_page;
         }
 
@@ -167,7 +162,33 @@ class Query {
         return $this->page;
     }
 
-    # TODO: move getXXXURL methods to this class
+    /**
+     * Returns the query parameters (excluding action and pagename).
+     *
+     * @return array
+     */
+    public function getParameters() {
+        return $this->parameters;
+    }
+
+    public function getURL($page="", $action="") {
+        $url = $this->config->base_url . "$action";
+        if ($page != "") $url .= "/" . urlencode($page);
+        return $url;
+    }
+
+    public function getPageURL($action="") {
+        return $this->getURL($this->getPagename(),$action);
+    }
+
+    public function asJSON() {
+        return json_encode(array(
+            'page' => $this->page,
+            'action' => $this->action,
+            'parameters' => $this->parameters
+            # we could add timestamp etc.
+        ),JSON_FORCE_OBJECT);
+    }
 }
 
 ?>

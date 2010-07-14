@@ -5,18 +5,12 @@
 		<link rel="stylesheet" type="text/css" href="<?php print $wigit->getCSSURL() ?>" />
 	</head>
 	<body>
-		<div id="navigation">
-			<p><a href="<?php print $wigit->getHomeURL() ?>">Home</a> 
-			| <a href="<?php print $wigit->getGlobalHistoryURL() ?>">History</a>
-			| <a href="<?php print $wigit->getGlobalIndexURL() ?>">Index</a>
-			<?php if ($wigit->getUser() != "") { ?>| Logged in as <?php print $wigit->getUser(); } ?>
-			</p>
-		</div>
+        <?php include __DIR__ . '/navigation.php'; ?>
 
 		<div id="header">
 			<h1 id="title"><?php print $wigit->getPage() ?></h1>
-			<p>[ <a href="<?php print $wigit->getEditURL()?>">edit</a> | 
-				   <a href="<?php print $wigit->getHistoryURL()?>">history</a> ]</p>
+			<p>[ <a href="<?php print $query->getPageURL("edit")?>">edit</a> 
+               | <a href="<?php print $query->getPageURL("history")?>">history</a> ]</p>
 		</div>
 
 		<div id="content">

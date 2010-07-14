@@ -5,20 +5,14 @@
 		<link rel="stylesheet" type="text/css" href="<?php print $wigit->getCSSURL() ?>" />
 	</head>
 	<body>
-		<div id="navigation">
-			<p><a href="<?php print $wigit->getHomeURL() ?>">Home</a> 
-			| <a href="<?php print $wigit->getGlobalHistoryURL() ?>">History</a>
-			| <a href="<?php print $wigit->getGlobalIndexURL() ?>">Index</a>
-			<?php if ($wigit->getUser() != "") { ?>| Logged in as <?php print $wigit->getUser(); } ?>
-			</p>
-		</div>
+        <?php include __DIR__ . '/navigation.php'; ?>
 
 		<div id="header">
 			<h1 id="title">Editing <?php print $wigit->getPageHTML() ?></h1>
 		</div>
 
 		<div id="form">
-			<form method="post" action="<?php print $wigit->getPostURL(); ?>">
+			<form method="post" action="<?php print $query->getPageURL("POST"); ?>">
 				<p><textarea name="data" cols="80" rows="20" style="width: 100%"><?php print $wigit->getRawData(); ?></textarea></p>
 				<p><input type="submit" value="publish" /></p>
 			</form>
