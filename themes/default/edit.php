@@ -32,7 +32,8 @@
 				code (e.g. <code>&lt;b&gt;Bold&lt;/b&gt;</code>), the following 
 				markup is available as well:
 				<ul>
-					<li><code>[SomePage]</code>: Internal link to SomePage</li>
+					<li><code>[[Some Page]]</code>: Internal link to Some Page</li>
+                    <li><code>[[Some Page|title]]</code>: Internal link to Some Page</li>
 					<li><code>h1. Section</code>, <code>h2. Subsection</code>: 
 						Section headers</li>
 					<li><code># Item</code>, <code>## Second-level item</code>:

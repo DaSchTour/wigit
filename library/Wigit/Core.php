@@ -69,6 +69,8 @@ class Core
      */
     protected $authBackend = 'http';
 
+    public $query; // todo: hide
+
     /**
      * Constructor!
      *
@@ -362,9 +364,15 @@ class Core
         // Linkify
         $text = \preg_replace('@([^:])(https?://([-\w\.]+)+(:\d+)?(/([%-\w/_\.]*(\?\S+)?)?)?)@', '$1<a href="$2">$2</a>', $text);
 
-        // WikiLinkify
-        $text = \preg_replace('@\[([A-Z]\w+)\]@', '<a href="' . $this->config->script_url . '/$1">$1</a>', $text);
-        $text = \preg_replace('@\[([A-Z]\w+)\|([\w\s]+)\]@', '<a href="' . $this->config->script_url . '/$1">$2</a>', $text);
+        // WikiLinkify (MediaWiki syntax)
+        $self = $this;
+        $mklink = function ($match) use ($self) {
+            $url = $self->getURL($match[1]);
+            $text = isset($match[2]) && $match[2] != "" ? $match[2] : $match[1];
+            return '<a href="' . $url . '">' . $text . '</a>';
+        };
+        $text = \preg_replace_callback('@\[\[([^\|]+)\]\]@', $mklink, $text);
+        $text = \preg_replace_callback('@\[\[([^\|]+)\|(.+)\]\]@', $mklink, $text);
 
         // Textilify
         $textile = new \Textile();
@@ -389,6 +397,10 @@ class Core
     {
         global $wikiPage;
         return $wikiPage;
+    }
+
+    public function getURL($page="", $action="") {
+        return $this->query->getURL($page,$action);
     }
 
     /**

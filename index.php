@@ -73,6 +73,7 @@ try {
 // --------------------------------------------------------------------------
 
 $query = new Query($config);
+$wigit->query = $query;
 
 $wikiPage     = $query->getPagename();
 $wikiFilename = $wigit->nameToFile($wikiPage);
