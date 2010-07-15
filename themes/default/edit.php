@@ -1,14 +1,15 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-		<title><?php print $wigit->getTitle() ?> &raquo; Editing <?php print $wigit->getPageHTML() ?></title>
+		<title><?php print $wigit->getTitle() ?> &raquo; Editing 
+          <?php print htmlspecialchars($query->getPagename()) ?></title>
 		<link rel="stylesheet" type="text/css" href="<?php print $wigit->getCSSURL() ?>" />
 	</head>
 	<body>
         <?php include __DIR__ . '/navigation.php'; ?>
 
 		<div id="header">
-			<h1 id="title">Editing <?php print $wigit->getPageHTML() ?></h1>
+			<h1 id="title">Editing <?php print htmlspecialchars($query->getPagename()) ?></h1>
 		</div>
 
         <?php if (isset($wikiContent) && $wikiContent) {
@@ -22,6 +23,7 @@
 				<p>
                   <input type="submit" value="publish" />
                   <input type="submit" name="a" value="preview" />
+                  <a href="<?php print $query->getPageURL(); ?>">cancel</a>
                 </p>
 			</form>
 		</div>

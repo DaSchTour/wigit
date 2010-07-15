@@ -69,6 +69,11 @@ class Core
      */
     protected $authBackend = 'http';
 
+    /**
+     * @var array $pageIndex Index of all pages.
+     */
+    protected $pageIndex = array();
+
     public $query; // todo: hide
 
     /**
@@ -194,19 +199,23 @@ class Core
     }
 
     /**
+     * Return the index of all pages.
+     *
+     * @param boolean $force reload instead of using cache as default
      * @return array
      */
-    public function getGitIndex()
+    public function getGitIndex($force = false)
     {
-        $index  = array();
-        $output = array();
-        $this->git("ls-files", $output);
-        foreach ($output as $line) {
-            # FIXME: this will fail if a filename contains disallowed character
-            $page = $this->fileToName($line);
-	        $index[] = array("page" => $page);
+        if ($force || empty($this->pageIndex)) {
+            $output = array();
+            $this->git("ls-files", $output);
+            foreach ($output as $line) {
+                # FIXME: this may fail if a filename contains disallowed character
+                $page = $this->fileToName($line);
+                $this->pageIndex[$page] = array("page" => $page);
+            }
         }
-        return $index;
+        return $this->pageIndex;
     }
 
     /**
@@ -335,6 +344,12 @@ class Core
         return $name;
     }
 
+    public function getPage($name) {
+        $this->getGitIndex();
+        return isset($this->pageIndex[$name]) ?
+               $this->pageIndex[$name] : null; # TODO: always return Page object
+    }
+
     /**
      * Map a file name to a page name.
      *
@@ -367,12 +382,15 @@ class Core
         // WikiLinkify (MediaWiki syntax)
         $self = $this;
         $mklink = function ($match) use ($self) {
-            $url = $self->getURL($match[1]);
-            $text = isset($match[2]) && $match[2] != "" ? $match[2] : $match[1];
-            return '<a href="' . $url . '">' . $text . '</a>';
+            $name = $match[1];
+            $url = $self->getURL($name);
+            $text = isset($match[2]) && $match[2] != "" ? $match[2] : $name;
+            $style = "";
+            if (!$self->getPage($name)) $style = " class=\"new\"";
+            return "<a href=\"" . $url . "\"$style>" . htmlspecialchars($text) . "</a>";
         };
-        $text = \preg_replace_callback('@\[\[([^\|]+)\]\]@', $mklink, $text);
-        $text = \preg_replace_callback('@\[\[([^\|]+)\|(.+)\]\]@', $mklink, $text);
+        $text = \preg_replace_callback('@\[\[([^\|\]\[]+)\]\]@', $mklink, $text);
+        $text = \preg_replace_callback('@\[\[([^\|\]\[]+)\|(.+)\]\]@', $mklink, $text);
 
         // Textilify
         $textile = new \Textile();
@@ -393,23 +411,8 @@ class Core
 		return $this->config->title;
 	}
 
-    function getPage()
-    {
-        global $wikiPage;
-        return $wikiPage;
-    }
-
     public function getURL($page="", $action="") {
         return $this->query->getURL($page,$action);
-    }
-
-    /**
-     * Get the current page name in HTML encoding.
-     * @return string the 
-     */
-    function getPageHTML()
-    {
-        return htmlspecialchars($this->getPage());
     }
 
     function getCSSURL()
