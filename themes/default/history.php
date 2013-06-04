@@ -1,3 +1,4 @@
+<?php namespace WiGit; ?>
 <html xmlns="http://www.w3.org/1999/xhtml">
 	<?php $historyTitle = "History" . (getPage() == "" ? "" : " of " . getPage()); ?>
 

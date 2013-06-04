@@ -1,13 +1,15 @@
 <?php 
-
+namespace WiGit;
 	/* 
 	 * WiGit
 	 * (c) Remko Tronçon (http://el-tramo.be)
 	 * See COPYING for details
 	 */
-
-	require_once('classTextile.php');
-
+	spl_autoload_register(function($class){
+		require 'lib/' . preg_replace('{\\\\|_(?!.*\\\\)}', DIRECTORY_SEPARATOR, ltrim($class, '\\')).'.php';
+	});
+	$parser = "WiGit\Parsers\Markdown";
+#	$parser = "WiGit\Parsers\Textile";
 	// --------------------------------------------------------------------------
 	// Configuration
 	// --------------------------------------------------------------------------
@@ -165,18 +167,12 @@
 	function wikify($text) {
 		global $SCRIPT_URL;
 
-		// FIXME: Do not apply this in <pre> and <notextile> blocks.
+		// FIXME: Do not apply this in <pre> and <noparse> blocks.
 
-		// Linkify
-		$text = preg_replace('@([^:])(https?://([-\w\.]+)+(:\d+)?(/([%-\w/_\.]*(\?\S+)?)?)?)@', '$1<a href="$2">$2</a>', $text);
-
-		// WikiLinkify
-		$text = preg_replace('@\[([A-Z]\w+)\]@', '<a href="' . $SCRIPT_URL . '/$1">$1</a>', $text);
-		$text = preg_replace('@\[([A-Z]\w+)\|([\w\s]+)\]@', '<a href="' . $SCRIPT_URL . '/$1">$2</a>', $text);
-
-		// Textilify
-		$textile = new Textile();
-		return $textile->TextileThis($text);
+		// Parse
+		global $parser;
+		$textile = new $parser();
+		return $textile->parse($text);
 	}
 
 	// --------------------------------------------------------------------------
@@ -276,8 +272,7 @@
 	// --------------------------------------------------------------------------
 	// Process request
 	// --------------------------------------------------------------------------
-
-	if (isset($_POST['data'])) {
+	if (is_array($_POST) && array_key_exists('data', $_POST)) {
 		if (trim($_POST['data']) == "") {
 			// Delete
 			if (file_exists($wikiFile)) {
@@ -333,6 +328,7 @@
 		}
 		// Editing
 		else if ($wikiSubPage == "edit") {
+			$data = '';
 			if (file_exists($wikiFile)) {
 				$handle = fopen($wikiFile, "r");
 				$data = fread($handle, filesize($wikiFile));
