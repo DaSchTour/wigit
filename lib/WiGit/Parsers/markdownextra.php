@@ -4,5 +4,8 @@ namespace WiGit\Parsers {
 		function parse( $text ) {
 			return \Michelf\MarkdownExtra::defaultTransform( $text );
 		}
+		function helpText() {
+			
+		}
 	}
 }

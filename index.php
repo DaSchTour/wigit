@@ -256,6 +256,11 @@ namespace WiGit;
 		global $wikiData;
 		return $wikiData;
 	}
+	
+	function getEditingHelpText() {
+		global $parser;
+		return $parser::helpText();
+	}
 
 	// --------------------------------------------------------------------------
 	// Initialize globals
