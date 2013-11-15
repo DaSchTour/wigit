@@ -19,7 +19,7 @@
 			<?php 
 				foreach ($wikiIndex as $item) {
 					print "<tr>"
-						. "<td class='page'><a href=\"" . $query->getURL($item["page"]) . "\">" 
+						. "<td class='page'><a href=\"" . $wigit->getViewURL($item["page"]) . "\">" 
 						. htmlspecialchars($item["page"]) . "</a></td>"
 						#. "<td>" . $item["date"] . "</td>"
 						#. "<td class='author'>" . $item["linked-author"] . "</td>"

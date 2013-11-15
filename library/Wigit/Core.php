@@ -415,6 +415,15 @@ class Core
         return $this->query->getURL($page,$action);
     }
 
+    /**
+     * Get the current page name in HTML encoding.
+     * @return string the 
+     */
+    function getPageHTML()
+    {
+        return htmlspecialchars($this->getPage());
+    }
+
     function getCSSURL()
     {
         return "{$this->config->base_url}/" . $this->getThemeDir() . "/style.css";
