@@ -1,365 +1,191 @@
-<?php 
-namespace WiGit;
-	/* 
-	 * WiGit
-	 * (c) Remko Tronçon (http://el-tramo.be)
-	 * See COPYING for details
-	 */
-	spl_autoload_register(function($class){
-		require 'lib/' . preg_replace('{\\\\|_(?!.*\\\\)}', DIRECTORY_SEPARATOR, ltrim($class, '\\')).'.php';
-	});
-	$parser = "WiGit\Parsers\Markdown";
-#	$parser = "WiGit\Parsers\Textile";
-	// --------------------------------------------------------------------------
-	// Configuration
-	// --------------------------------------------------------------------------
+<?php
+/**
+ * +-----------------------------------------------------------------------+
+ * | Copyright (c) 2009, Remko Tronçon                                     |
+ * | All rights reserved.                                                  |
+ * |                                                                       |
+ * | Redistribution and use in source and binary forms, with or without    |
+ * | modification, are permitted provided that the following conditions    |
+ * | are met:                                                              |
+ * |                                                                       |
+ * | o Redistributions of source code must retain the above copyright      |
+ * |   notice, this list of conditions and the following disclaimer.       |
+ * | o Redistributions in binary form must reproduce the above copyright   |
+ * |   notice, this list of conditions and the following disclaimer in the |
+ * |   documentation and/or other materials provided with the distribution.|
+ * | o The names of the authors may not be used to endorse or promote      |
+ * |   products derived from this software without specific prior written  |
+ * |   permission.                                                         |
+ * |                                                                       |
+ * | THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS   |
+ * | "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT     |
+ * | LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR |
+ * | A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT  |
+ * | OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, |
+ * | SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT      |
+ * | LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, |
+ * | DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY |
+ * | THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT   |
+ * | (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE |
+ * | OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.  |
+ * |                                                                       |
+ * +-----------------------------------------------------------------------+
+ * | Author: Remko Tronçon                                                 |
+ * +-----------------------------------------------------------------------+
+ *
+ * PHP version 5
+ *
+ * @category VersionControl
+ * @package  Wigit
+ * @author   Remko Tronçon <remko@el-tramo.be>
+ * @author   Till Klampaeckel <till@php.net>
+ * @license  http://www.opensource.org/licenses/bsd-license.php The BSD License
+ * @version  GIT: $Id$
+ * @link     http://github.com/till/wigit
+ */
+namespace Wigit;
 
-	if (file_exists('config.php')) {
-		require_once('config.php');
-	}
-	if (!isset($GIT)) { $GIT = "git"; }
-	if (!isset($BASE_URL)) { $BASE_URL = "/wigit"; }
-	if (!isset($SCRIPT_URL)) { $SCRIPT_URL = "$BASE_URL/index.php?r="; }
-	if (!isset($TITLE)) { $TITLE = "WiGit"; }
-	if (!isset($DATA_DIR)) { $DATA_DIR = "data"; }
-	if (!isset($DEFAULT_PAGE)) { $DEFAULT_PAGE = "Home"; }
-	if (!isset($DEFAULT_AUTHOR)) { $DEFAULT_AUTHOR = 'Anonymous <anonymous@wigit>'; }
-  if (!isset($AUTHORS)) { $AUTHORS = array(); }
-  if (!isset($THEME)) { $THEME = "default"; }
+require_once __DIR__ . '/library/classTextile.php';
+require_once __DIR__ . '/library/Wigit.php';
+require_once __DIR__ . '/library/Wigit/Query.php';
 
+$config = new Config;
+$config->checkLocalConfig(__DIR__ . '/etc/config.php');
 
-	// --------------------------------------------------------------------------
-	// Helpers
-	// --------------------------------------------------------------------------
+$wigit = new Core($config);
 
-	function getGitHistory($file = "") {
-		$output = array();
-		// FIXME: Find a better way to find the files that changed than --name-only
-		git("log --name-only --pretty=format:'%H>%T>%an>%ae>%aD>%s' -- $file", $output);
-		$history = array();
-		$historyItem = array();
-		foreach ($output as $line) {
-			$logEntry = explode(">", $line, 6);
-			if (sizeof($logEntry) > 1) {
-				// Populate history structure
-				$historyItem = array(
-						"author" => $logEntry[2], 
-						"email" => $logEntry[3],
-						"linked-author" => (
-								$logEntry[3] == "" ? 
-									$logEntry[2] 
-									: "<a href=\"mailto:$logEntry[3]\">$logEntry[2]</a>"),
-						"date" => $logEntry[4], 
-						"message" => $logEntry[5],
-						"commit" => $logEntry[0]
-					);
-			}
-			else if (!isset($historyItem["page"])) {
-				$historyItem["page"] = $line;
-				$history[] = $historyItem;
-			}
-		}
-		return $history;
-	}
+// --------------------------------------------------------------------------
+// Initialize globals
+// --------------------------------------------------------------------------
 
-	function getAuthorForUser($user) {
-		global $AUTHORS, $DEFAULT_AUTHOR;
+$wikiUser    = $wigit->getAuthenticatedUser();
 
-		if (isset($AUTHORS[$user])) {
-			return $AUTHORS[$user];
-		}
-		else if ($user != "") {
-			return "$user <$user@wiggit>";
-		}
-		return $DEFAULT_AUTHOR;
-	}
+try {
+    $wigit->checkSetup();
+} catch (\RuntimeException $e) {
+    $errorMsg = "Check setup: " . (string) $e;
+    include $wigit->getThemeDir() . '/error.php';
+    exit;
+}
 
-	function getHTTPUser() {
-		// This code is copied from phpMyID. Thanks to the phpMyID dev(s).
-		if (function_exists('apache_request_headers') && ini_get('safe_mode') == false) {
-			$arh = apache_request_headers();
-			$hdr = $arh['Authorization'];
-		} elseif (isset($_SERVER['PHP_AUTH_DIGEST'])) {
-			$hdr = $_SERVER['PHP_AUTH_DIGEST'];
-		} elseif (isset($_SERVER['HTTP_AUTHORIZATION'])) {
-			$hdr = $_SERVER['HTTP_AUTHORIZATION'];
-		} elseif (isset($_ENV['PHP_AUTH_DIGEST'])) {
-			$hdr = $_ENV['PHP_AUTH_DIGEST'];
-		} elseif (isset($_REQUEST['auth'])) {
-			$hdr = stripslashes(urldecode($_REQUEST['auth']));
-		} else {
-			$hdr = null;
-		}
-		$digest = substr($hdr,0,7) == 'Digest '
-			?  substr($hdr, strpos($hdr, ' ') + 1)
-			: $hdr;
-		if (!is_null($digest)) {
-			$hdr = array();
-			preg_match_all('/(\w+)=(?:"([^"]+)"|([^\s,]+))/', $digest, $mtx, PREG_SET_ORDER);
-			foreach ($mtx as $m) {
-				if ($m[1] == "username") {
-					return $m[2] ? $m[2] : str_replace("\\\"", "", $m[3]);
-				}
-			}
-		}
-		return $_SERVER['PHP_AUTH_USER'];
-	}
+// --------------------------------------------------------------------------
+// Process request
+// --------------------------------------------------------------------------
 
-	function git($command, &$output = "") {
-		global $GIT, $DATA_DIR;
+$query = new Query($config);
+$wigit->query = $query;
 
-		$gitDir = dirname(__FILE__) . "/$DATA_DIR/.git";
-		$gitWorkTree = dirname(__FILE__) . "/$DATA_DIR";
-		$gitCommand = "$GIT --git-dir=$gitDir --work-tree=$gitWorkTree $command";
-		$output = array();
-		$result;
-		// FIXME: Only do the escaping and the 2>&1 if we're not in safe mode 
-		// (otherwise it will be escaped anyway).
-		// FIXME: Removed escapeShellCmd because it clashed with author.
-		$oldUMask = umask(0022);
-		exec($gitCommand . " 2>&1", $output, $result);
-		$umask = $oldUMask;
-		// FIXME: The -1 is a hack to avoid 'commit' on an unchanged repo to
-		// fail.
-		if ($result != 0) {
-			// FIXME: HTMLify these strings
-			print "<h1>Error</h1>\n<pre>\n";
-			print "$" . $gitCommand . "\n";
-			print join("\n", $output) . "\n";
-			//print "Error code: " . $result . "\n";
-			print "</pre>";
-			return 0;
-		}
-		return 1;
-	}
+$wikiPage     = $query->getPagename();
+$wikiFilename = $wigit->nameToFile($wikiPage);
 
-	function sanitizeName($name) {
-		return ereg_replace("[^A-Za-z0-9]", "_", $name);
-	}
+$wikiFile     = __DIR__ . "/" . $config->data_dir . "/" . $wikiFilename;
 
-	function parseResource($resource) {
-		global $DEFAULT_PAGE;
+if ($query->getAction() == 'POST') {
 
-		$matches = array();
-		$page = "";
-		$type = "";
-		if (ereg("/(.*)/(.*)", $resource, $matches)) {
-			$page = sanitizeName($matches[1]);
-			$type = $matches[2];
-		}
-		else if (ereg("/(.*)", $resource, $matches)) {
-			$page = sanitizeName($matches[1]);
-		}
-		if ($page == "") {
-			$page = $DEFAULT_PAGE;
-		}
-		if ($type == "") {
-			$type = "view";
-		}
-		return array("page" => $page, "type" => $type);
-	}
+    // Save (TODO: does not work for page named "./%")
+    $handle = fopen($wikiFile, "w");
+    $data = $query->getParam('data');
+    fputs($handle, stripslashes($data));
+    fclose($handle);
 
+    // TODO: if page does not exist use "Created"
+    $commitMessage = addslashes("Changed $wikiPage");
+    $author        = addslashes($wigit->getAuthorForUser($wigit->getUser()));
 
-	// --------------------------------------------------------------------------
-	// Wikify
-	// --------------------------------------------------------------------------
+    $wigit->createNewPage($wikiPage, $author, $commitMessage);
 
-	function wikify($text) {
-		global $SCRIPT_URL;
+    header("Location: " . $query->getURL($wikiPage));
+    exit;
+} 
+else if ($query->getAction() == "DELETE") {
+    // Delete
+    if (file_exists($wikiFile)) {
+        if (!$wigit->git("rm $wikiFilename")) {
+            exit('rm');
+        }
 
-		// FIXME: Do not apply this in <pre> and <noparse> blocks.
+        $commitMessage = addslashes("Deleted $wikiPage");
+        $author        = addslashes($wigit->getAuthorForUser($wigit->getUser()));
+        if (!$wigit->git("commit --allow-empty --no-verify --message='$commitMessage' --author='$author'")) {
+            exit('commit');
+        }
+        if (!$wigit->git("gc")) {
+            exit('gc');
+        }
+    }
+    header("Location: " . $query->getPageURL());
+    exit;
+}
+// Global history
+else if ($query->getAction() == "history") {
+    $wikiHistory = $wigit->getGitHistory();
+    $wikiPage = "";
+    include $wigit->getThemeDir() . "/history.php";
+}
+// Page index
+else if ($query->getAction() == "index") {
+    $wikiIndex = $wigit->getGitIndex();
+    include $wigit->getThemeDir() . "/index.php";
+}
+else if ($query->getAction() == "preview") {
 
-		// Parse
-		global $parser;
-		$textile = new $parser();
-		return $textile->parse($text);
-	}
+    $wikiData = $query->getParam("data");
 
-	// --------------------------------------------------------------------------
-	// Utility functions (for use inside templates)
-	// --------------------------------------------------------------------------
-	
-	function getViewURL($page, $version = null) {
-		global $SCRIPT_URL;
-		if ($version) {
-			return "$SCRIPT_URL/$page/$version";
-		}
-		else {
-			return "$SCRIPT_URL/$page";
-		}
-	}
+    // Put in template
+    $wikiContent = $wigit->wikify($wikiData);
 
-	function getPostURL() {
-		global $SCRIPT_URL;
-		$page = getPage();
-		return "$SCRIPT_URL/$page";
-	}
+    include $wigit->getThemeDir() . "/edit.php";
 
-	function getEditURL() {
-		global $SCRIPT_URL;
-		$page = getPage();
-		return "$SCRIPT_URL/$page/edit";
-	}
+// Viewing
+} else if ($query->getAction() == "view") {
+    if (!file_exists($wikiFile)) {
+        header("Location: " . $query->getURL($wikiPage,"edit"));
+        exit;
+    }
 
-	function getHistoryURL() {
-		global $SCRIPT_URL;
-		$page = getPage();
-		return "$SCRIPT_URL/$page/history";
-	}
-	
-	function getGlobalHistoryURL() {
-		global $SCRIPT_URL;
-		return "$SCRIPT_URL/history";
-	}
+    // Open the file
+    $data = $wigit->getFileContents($wikiFile);
 
-	function getHomeURL() {
-		global $SCRIPT_URL;
-		return "$SCRIPT_URL/";
-	}
+    // Put in template
+    $wikiContent = $wigit->wikify($data);
+    include $wigit->getThemeDir() . "/view.php";
+}
+// Editing
+else if ($query->getAction() == "edit") {
+    if (file_exists($wikiFile)) {
+        $data = $wigit->getFileContents($wikiFile);
+    } else {
+        $data = 'This page does not exist (yet).';
+    }
 
-	function getUser() {
-		global $wikiUser;
-		return $wikiUser;
-	}
-
-	function getTitle() {
-		global $TITLE;
-		return $TITLE;
-	}
-
-	function getPage() {
-		global $wikiPage;
-		return $wikiPage;
-	}
-
-	function getCSSURL() {
-		global $BASE_URL;
-		return "$BASE_URL/" . getThemeDir() . "/style.css";
-	}
-
-	function getThemeDir() {
-		global $THEME;
-		return "themes/$THEME";
-	}
-
-	function getFile() {
-		global $wikiFile;
-		return $wikiFile;
-	}
-
-	function getContent() {
-		global $wikiContent;
-		return $wikiContent;
-	}
-
-	function getRawData() {
-		global $wikiData;
-		return $wikiData;
-	}
-	
-	function getEditingHelpText() {
-		global $parser;
-		return $parser::helpText();
-	}
-
-	// --------------------------------------------------------------------------
-	// Initialize globals
-	// --------------------------------------------------------------------------
-
-	$wikiUser = getHTTPUser();
-
-	$resource = parseResource($_GET['r']);
-	$wikiPage = $resource["page"];
-	$wikiSubPage = $resource["type"];
-	$wikiFile = $DATA_DIR . "/" . $wikiPage;
-
-
-	// --------------------------------------------------------------------------
-	// Process request
-	// --------------------------------------------------------------------------
-	if (is_array($_POST) && array_key_exists('data', $_POST)) {
-		if (trim($_POST['data']) == "") {
-			// Delete
-			if (file_exists($wikiFile)) {
-				if (!git("rm $wikiPage")) { return; }
-
-				$commitMessage = addslashes("Deleted $wikiPage");
-				$author = addslashes(getAuthorForUser(getUser()));
-				if (!git("commit --allow-empty --no-verify --message='$commitMessage' --author='$author'")) { return; }
-				if (!git("gc")) { return; }
-			}
-			header("Location: $wikiHome");
-			return;
-		}
-		else {
-			// Save
-			$handle = fopen($wikiFile, "w");
-			fputs($handle, stripslashes($_POST['data']));
-			fclose($handle);
-
-			$commitMessage = addslashes("Changed $wikiPage");
-			$author = addslashes(getAuthorForUser(getUser()));
-			if (!git("init")) { return; }
-			if (!git("add $wikiPage")) { return; }
-			if (!git("commit --allow-empty --no-verify --message='$commitMessage' --author='$author'")) { return; }
-			if (!git("gc")) { return; }
-			header("Location: " . getViewURL($wikiPage));
-			return;
-		}
-	}
-	// Get operation
-	else {
-		// Global history
-		if ($wikiPage == "history") {
-			$wikiHistory = getGitHistory();
-			$wikiPage = "";
-			include(getThemeDir() . "/history.php");
-		}
-		// Viewing
-		else if ($wikiSubPage == "view") {
-			if (!file_exists($wikiFile)) {
-				header("Location: " . $SCRIPT_URL . "/" . $resource["page"] . "/edit");
-				return;
-			}
-
-			// Open the file
-			$handle = fopen($wikiFile, "r");
-			$data = fread($handle, filesize($wikiFile));
-			fclose($handle);
-
-			// Put in template
-			$wikiContent = wikify($data);
-			include(getThemeDir() . "/view.php");
-		}
-		// Editing
-		else if ($wikiSubPage == "edit") {
-			$data = '';
-			if (file_exists($wikiFile)) {
-				$handle = fopen($wikiFile, "r");
-				$data = fread($handle, filesize($wikiFile));
-			}
-
-			// Put in template
-			$wikiData = $data;
-			include(getThemeDir() . "/edit.php");
-		}
-		// History
-		else if ($wikiSubPage == "history") {
-			$wikiHistory = getGitHistory($wikiPage);
-			include(getThemeDir() . "/history.php");
-		}
-		// Specific version
-		else if (eregi("[0-9A-F]{20,20}", $wikiSubPage)) {
-			$output = array();
-			if (!git("cat-file -p " . $wikiSubPage . ":$wikiPage", $output)) {
-				return;
-			}
-			$wikiContent = wikify(join("\n", $output));
-			include(getThemeDir() . "/view.php");
-		}
-		else {
-			print "Unknow subpage: " . $wikiSubPage;
-		}
-	}
+    // Put in template
+    $wikiData = $data;
+    include $wigit->getThemeDir() . "/edit.php";
+}
+// History
+else if ($query->getAction() == "history") {
+    $wikiHistory = $wigit->getGitHistory($wikiPage);
+    include $wigit->getThemeDir() . "/history.php";
+}
+// Specific version
+else if (preg_match("/[0-9A-F]{20,20}/i", $query->getAction())) {
+    $output = array();
+    if (!$wigit->git("cat-file -p " . $query->getAction() . ":$wikiFilename", $output)) {
+        exit('cat-file');
+    }
+    $wikiContent = $wigit->wikify(join("\n", $output));
+    include $wigit->getThemeDir() . "/view.php";
+}
+else {
+    $action = $query->getAction();
+    // TODO: test this
+    if ($query->getPagename() != "") $action .= "/".$query->getPagename();
+    $haction = htmlspecialchars($action);
+    $errorMsg = "Unknow action: $haction! Did you mean page " .
+                "<a href='" . $query->getURL($action) . "'>$haction</a>?";
+    include $wigit->getThemeDir() . '/error.php';
+}
+exit;
+>>>>>>> nichtich
 
 ?>

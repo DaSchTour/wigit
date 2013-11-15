@@ -8,8 +8,12 @@ p {
 }
 
 a { 
-	color: #f50; 
+	color: #0645AD; 
 	text-decoration: none; 
+}
+
+a.new {
+    color: #C20;
 }
 
 a:hover { 
